@@ -1,4 +1,4 @@
-export interface ISupply {
+export interface IItem {
 	id: string;
 	name: string;
     about: string;
@@ -12,14 +12,14 @@ export interface IOrder {
     phone: string;
     payment: string;
     address: string;
-    supplies: string[];
-    total: number | null;
 }
 
-export interface ICartModal {
-    supplies: TCartSupply[];
-    addSupply(supplies: TCartSupply): void;
-    removeSupply(supplies: TCartSupply): void;
+export interface IShoppingCart {
+    items: TCartItem[];
+    getSupplies(): TCartItem[];
+    isEmpty(): boolean; 
+    addItem(items: TCartItem): void;
+    removeItem(items: TCartItem): void;
     getTotalPrice(): number | null;
     clearCart(): void;
 }
@@ -29,11 +29,11 @@ export interface IOrderComplete{
     total: number | null;
 }
 
-export interface ISuppliesData {
-    supplies: ISupply[];
+export interface IItemsData {
+    items: IItem[];
     preview: string | null;
-    getAllSupplies(supplies: ISupply[]): ISupply;
-    getPreview(supplies: ISupply): ISupply;
+    getAllItems: IItem;
+    getPreview(items: IItem): IItem;
 }
 
 export interface IOrderData {
@@ -44,13 +44,12 @@ export interface IOrderData {
     setDeliveryDetails(deliveryData: IOrder): void;
 }
 
-export type TSupplyCategory = 'софт-скил' | 'другое' | 'дополнительное' | 'кнопка' | 'хард-скил';
-export type TCartSupply = Pick<ISupply, 'id' | 'name' | 'price'>;
+export type TItemCategory = 'софт-скил' | 'другое' | 'дополнительное' | 'кнопка' | 'хард-скил';
+export type TCartItem = Pick<IItem, 'id' | 'name' | 'price'>;
 
 export type TPaymentMethod = Pick<IOrder, 'payment'>;
 export type TOrderDeliveryForm = Pick<IOrder, 'payment' | 'address'>;
 export type TOrderContactForm = Pick<IOrder, 'email' | 'phone'>;
-export type TOrderCompleteForm = Pick<IOrder, 'total'>;
 
 export type TErrorDeliveryForm = Partial<Record<keyof TOrderDeliveryForm, string>>;
 export type TErrorContactForm = Partial<Record<keyof TOrderContactForm, string>>;

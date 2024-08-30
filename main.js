@@ -1,0 +1,3 @@
+/*! For license information please see main.js.LICENSE.txt */
+(()=>{"use strict";var e={"./src/scss/styles.scss":(e,r,_)=>{_.r(r)}},r={};function __webpack_require__(_){var s=r[_];if(void 0!==s)return s.exports;var t=r[_]={exports:{}};return e[_](t,t.exports,__webpack_require__),t.exports}__webpack_require__.r=e=>{"undefined"!=typeof Symbol&&Symbol.toStringTag&&Object.defineProperty(e,Symbol.toStringTag,{value:"Module"}),Object.defineProperty(e,"__esModule",{value:!0})};var _={};(()=>{__webpack_require__.r(_);__webpack_require__("./src/scss/styles.scss")})()})();
+//# sourceMappingURL=main.js.map

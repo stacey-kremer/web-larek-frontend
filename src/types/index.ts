@@ -1,55 +1,47 @@
 export interface IItem {
-	id: string;
-	name: string;
-    about: string;
-    price: number | null;
-    category: string;
-	image: string;
-}
-
-export interface IOrder {
-    email: string;
-    phone: string;
-    payment: string;
-    address: string;
+	id: string,
+	title: string,
+    description: string,
+    price: number | null,
+    category: string,
+	image: string,
+    index: string,
+    buttonText: string;
+    count: any;
 }
 
 export interface IShoppingCart {
-    items: TCartItem[];
-    getSupplies(): TCartItem[];
-    isEmpty(): boolean; 
-    addItem(items: TCartItem): void;
-    removeItem(items: TCartItem): void;
-    getTotalPrice(): number | null;
-    clearCart(): void;
+    items: HTMLElement[];
+    total: number;
+}
+
+export interface IDeliveryForm {
+    payment: string,
+    address: string,
+}
+
+export interface IContactForm {
+    email: string,
+    phone: string,
+}
+
+export interface IOrder extends IDeliveryForm, IContactForm {
+	items: string[],
+	total: number | null,
 }
 
 export interface IOrderComplete{
-    id: string;
-    total: number | null;
+    id: string,
+    total: number | null,
 }
 
-export interface IItemsData {
-    items: IItem[];
+export interface IAppState {
+	catalog: IItem[];
+	basket: IItem[];
+	order: IOrder | null;
     preview: string | null;
-    getAllItems: IItem;
-    getPreview(items: IItem): IItem;
+    delivery: IDeliveryForm | null;
+    contacts: IContactForm | null;
 }
 
-export interface IOrderData {
-    order: IOrder[];
-    getUserContacts(): TOrderContactForm;
-    getDeliveryDetails(): TOrderDeliveryForm;
-    setUserContacts(contactsData: IOrder): void;
-    setDeliveryDetails(deliveryData: IOrder): void;
-}
-
-export type TItemCategory = 'софт-скил' | 'другое' | 'дополнительное' | 'кнопка' | 'хард-скил';
-export type TCartItem = Pick<IItem, 'id' | 'name' | 'price'>;
-
-export type TPaymentMethod = Pick<IOrder, 'payment'>;
-export type TOrderDeliveryForm = Pick<IOrder, 'payment' | 'address'>;
-export type TOrderContactForm = Pick<IOrder, 'email' | 'phone'>;
-
-export type TErrorDeliveryForm = Partial<Record<keyof TOrderDeliveryForm, string>>;
-export type TErrorContactForm = Partial<Record<keyof TOrderContactForm, string>>;
+export type TErrorForm = Partial<Record<keyof IOrder, string>>;

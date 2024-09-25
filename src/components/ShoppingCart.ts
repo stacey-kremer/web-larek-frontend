@@ -1,7 +1,7 @@
-import { IShoppingCart } from '../../types';
-import { createElement, ensureElement } from '../../utils/utils';
-import { Component } from '../base/Component';
-import { IEvents } from '../base/Events';
+import { IShoppingCart } from '../types';
+import { createElement, ensureElement } from '../utils/utils';
+import { Component } from './base/Component';
+import { IEvents } from './base/Events';
 
 export class ShoppingCart extends Component<IShoppingCart> {
 	protected _list: HTMLElement;

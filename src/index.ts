@@ -1,15 +1,15 @@
 import './scss/styles.scss';
 
-import { AppState, CatalogChanged } from './components/common/AppState';
-import { CardItem } from './components/common/Card';
-import { ContactForm } from './components/common/ContactInfo';
-import { DeliveryForm, paymentMethod } from './components/common/DeliveryInfo';
-import { MarketApi } from './components/common/MarketAPI';
+import { AppState, CatalogChanged, DeliveryFormChangeData } from './components/AppState';
+import { CardItem } from './components/Card';
+import { ContactForm } from './components/ContactInfo';
+import { DeliveryForm, paymentMethod } from './components/DeliveryInfo';
+import { MarketApi } from './components/MarketAPI';
 import { EventEmitter } from './components/base/Events';
 import { Modal } from './components/common/Modal';
-import { Page } from './components/common/Page';
-import { ShoppingCart } from './components/common/ShoppingCart';
-import { Success } from './components/common/Success';
+import { Page } from './components/Page';
+import { ShoppingCart } from './components/ShoppingCart';
+import { Success } from './components/Success';
 import { API_URL, CDN_URL } from './utils/constants';
 import { cloneTemplate, ensureElement } from './utils/utils';
 import { IItem, IContactForm, IDeliveryForm, IOrderComplete } from './types';
@@ -39,6 +39,9 @@ const deliveryInf = new DeliveryForm(cloneTemplate(deliveryTemplate), events, {
 		events.emit('payment:changed', event.target);
 	},
 });
+const success =  new Success(cloneTemplate(successTemplate), {
+    onClick: () => modal.close(),
+});
 
 // Изменение списка товаров и отрисовка карточек
 events.on<CatalogChanged>('items:changed', () => {
@@ -54,7 +57,8 @@ events.on<CatalogChanged>('items:changed', () => {
 		});
 	};
 
-	page.catalog = appState.catalog.map(renderCard);
+	const catalog = appState.getCatalog();
+	page.catalog = catalog.map(renderCard);
 });
 
 // Выбор карточки с товаром
@@ -69,10 +73,9 @@ events.on('preview:changed', (item: IItem) => {
 	const card = new CardItem(cloneTemplate(cardPreviewTemplate), {
 		onClick: () => {
 			events.emit('item:check', item);
-			card.buttonText =
-				appState.basket.indexOf(item) < 0
-					? 'Добавить в корзину'
-					: 'Удалить из корзины';
+			card.buttonText = appState.isItemInBasket(item)
+				? 'Удалить из корзины'
+				: 'Добавить в корзину';
 		},
 	});
 
@@ -83,19 +86,22 @@ events.on('preview:changed', (item: IItem) => {
 			image: item.image,
 			description: item.description,
 			price: item.price,
-			buttonText:
-				appState.basket.indexOf(item) < 0
-					? 'Добавить в корзину'
-					: 'Удалить из корзины',
+			buttonText: appState.isItemInBasket(item)
+				? 'Удалить из корзины'
+				: 'Добавить в корзину',
 		}),
 	});
 });
 
 // Проверка, связанная с добавлением/удалением товара из корзины
 events.on('item:check', (item: IItem) => {
-	appState.basket.indexOf(item) < 0
-		? events.emit('item:add', item)
-		: events.emit('item:delete', item);
+	if (appState.isItemInBasket(item)) {
+		events.emit('item:delete', item);
+		appState.removeItemFromCart(item);
+	} else {
+		events.emit('item:add', item);
+		appState.addItemToCart(item);
+	}
 });
 
 // Добавление товара в корзину
@@ -111,6 +117,7 @@ events.on('item:delete', (item: IItem) => {
 // Обновление корзины
 // Отрисовка списка товаров в корзине и подсчет суммы
 events.on('basket:changed', (items: IItem[]) => {
+	appState.basket = items;
 	basket.items = items.map((item, count) => {
 		const card = new CardItem(cloneTemplate(cardInShoppingCartTemplate), {
 			onClick: () => {
@@ -123,17 +130,13 @@ events.on('basket:changed', (items: IItem[]) => {
 			count: (count + 1).toString(),
 		});
 	});
-	let total = 0;
-	items.forEach((item) => {
-		total = total + item.price;
-	});
+	const total = appState.getTotalSum();
 	basket.totalSum = total;
-	appState.order.total = total;
 });
 
 // Обновление счетчика товаров в корзине
 const updateCounter = () => {
-	const itemCount = appState.basket.length;
+	const itemCount = appState.getBasketCount(); 
 	page.counter = itemCount;
 };
 
@@ -162,7 +165,7 @@ const openOrder = () => {
 		content: deliveryContent,
 	});
 
-	appState.order.items = appState.basket.map((item) => item.id);
+	const orderData = appState.prepareOrderData();
 };
 
 events.on('order:open', openOrder);
@@ -170,22 +173,9 @@ events.on('order:open', openOrder);
 // Обработка изменения способа оплаты
 events.on('payment:changed', handlePaymentChange);
 
-function handlePaymentChange(target: HTMLElement) {
-	if (isButtonInactive(target)) {
-		deliveryInf.switchButtons();
-		updatePaymentMethod(target);
-	}
-}
-
-function isButtonInactive(target: HTMLElement): boolean {
-	return !target.classList.contains('button_alt-active');
-}
-
-function updatePaymentMethod(target: HTMLElement) {
-	const paymentName = target.getAttribute('name');
-	if (paymentName) {
-		appState.order.payment = paymentMethod[paymentName];
-	}
+function handlePaymentChange({ method }: { method: string }) {
+    appState.setPaymentMethod(method); 
+    deliveryInf.updatePaymentButtons();
 }
 
 // Изменение полей формы доставки
@@ -200,93 +190,70 @@ function handleOrderChange(data: {
 }
 
 // Обработка информации, связанной с доставкой и оплатой
-events.on('deliveryForm:changed', updateDeliveryInfo);
+events.on('deliveryForm:changed', (data: DeliveryFormChangeData) => {
+    deliveryInf.valid = data.valid; 
+    deliveryInf.errors = data.errors; 
+});
 
-function updateDeliveryInfo(errors: Partial<IDeliveryForm>) {
-    const { payment, address } = errors;
 
-    deliveryInf.valid = !payment && !address;
-    deliveryInf.errors = formatErrors({ payment, address });
-}
 
-function formatErrors(errors: Partial<IDeliveryForm>): string {
-    return Object.values(errors)
-        .filter(Boolean)
-        .join('; ');
-}
-
-//Отправка данных о доставке и переход к заполнению контактных данных
-events.on('order:submit', handleOrderSubmit);
-
-function handleOrderSubmit() {
-    renderContactInfo();
-    updateOrderItems();
-}
-
-function renderContactInfo() {
+//Переход к заполнению контактных данных
+events.on('order:submit', () => {
     modal.render({
         content: сontactInf.render({
             email: '',
             phone: '',
-            valid: false,
             errors: [],
+            valid: false,
         }),
     });
-}
-
-function updateOrderItems() {
-    appState.order.items = appState.basket.map(item => item.id);
-}
+});
 
 // Изменение полей формы контактов
 events.on(/^contacts\..*:change/, handleContactChange);
 
-function handleContactChange(data: { field: keyof IContactForm; value: string }) {
-    appState.setContactField(data.field, data.value);
+function handleContactChange(data: {
+	field: keyof IContactForm;
+	value: string;
+}) {
+	appState.setContactField(data.field, data.value);
 }
 
 // Обработка информации, связанная с контактами покупателя
 events.on('contactForm:changed', handleContactFormChange);
 
 function handleContactFormChange(errors: Partial<IContactForm>) {
-    const { email, phone } = errors;
-    сontactInf.valid = !email && !phone;
-    сontactInf.errors = getErrorMessages({ email, phone });
+	const { email, phone } = errors;
+	сontactInf.valid = !email && !phone;
+	сontactInf.errors = getErrorMessages({ email, phone });
 }
 
 function getErrorMessages(errors: Partial<IContactForm>): string {
-    return Object.values(errors)
-        .filter(Boolean)
-        .join('; ');
+	return Object.values(errors).filter(Boolean).join('; ');
 }
 
 // Отправка данных на свервер и отрисовка окна успешной покупки
 events.on('contacts:submit', handleContactsSubmit);
 
 function handleContactsSubmit() {
-    api.orderItem(appState.order)
+    const orderData = appState.prepareOrderData();
+    api.orderItem(orderData)
         .then(handleOrderSuccess)
         .catch(handleOrderError);
 }
 
 function handleOrderSuccess(result: IOrderComplete) {
     appState.clearCart();
-    const success = createSuccessModal(result.total);
+    const total = Number(result.total);
+   
+    success.setTotal(total); 
     modal.render({
         content: success.render({}),
     });
 }
 
-function createSuccessModal(total: number) {
-    const success = new Success(cloneTemplate(successTemplate), {
-        onClick: () => modal.close(),
-    });
-    success.total = total;
-    return success;
-}
-
 function handleOrderError(error: Error) {
-    console.error(error);
+    console.error('Order error:', error);
 }
 
 //Блокируем прокрутку при открытом модальном окне

@@ -1,31 +1,48 @@
-import { Model } from '../base/Model';
+import { Model } from './base/Model';
 import {
 	TErrorForm,
 	IAppState,
 	IItem,
 	IOrder,
+	IShoppingCart,
 	IDeliveryForm,
 	IContactForm,
-} from '../../types';
+} from '../types';
 
 export type CatalogChanged = {
 	catalog: IItem[];
 };
 
+export interface DeliveryFormChangeData {
+    valid: boolean;
+    errors: string;
+}
+
 export class AppState extends Model<IAppState> {
 	basket: IItem[] = [];
 	catalog: IItem[] = [];
+	shoppingCart: IShoppingCart = {
+		items: [],
+		total: 0,
+	};
 	formErrors: TErrorForm = {};
 	preview: string | null = null;
 
 	order: IOrder = {
-		items: [],
-		total: 0,
 		address: '',
 		payment: 'online',
 		email: '',
 		phone: '',
 	};
+
+	prepareOrderData(): IOrder & { items: string[], total: number } {
+		const orderData = {
+			...this.order,
+			items: this.basket.map(item => item.id),
+			total: this.getTotalSum(),
+		};
+		return orderData;
+	}
 
 	setItems(items: IItem[]) {
 		this.catalog = items;
@@ -60,20 +77,15 @@ export class AppState extends Model<IAppState> {
 	clearCart() {
 		this.basket = [];
 		this.emitChanges('basket:changed', this.basket);
-		this.emitChanges('count:changed', this.basket);
 	}
 
-	getTotalSum() {
-		return this.basket.reduce((total, item) => {
-			return total + (item.price || 0);
-		}, 0);
+	getTotalSum(): number {
+		return this.basket.reduce((total, item) => total + (item.price || 0), 0);
 	}
 
 	setDeliveryField(field: keyof IDeliveryForm, value: string) {
 		this.order[field] = value;
-		if (this.validateDeliveryForm()) {
-			this.events.emit('delivery:changed', this.order);
-		}
+		this.updateDeliveryInfo(); 
 	}
 
 	setContactField(field: keyof IContactForm, value: string) {
@@ -84,17 +96,12 @@ export class AppState extends Model<IAppState> {
 	}
 
 	validateDeliveryForm() {
-		const error: typeof this.formErrors = {};
+		const error: Partial<IDeliveryForm> = {};
 		const addressPattern = /^[а-яА-Яa-zA-Z0-9.,!?:;\-()'" ]+$/i;
-		const paymentPattern = /^(cash|card)$/;
 
 		if (!addressPattern.test(this.order.address) || !this.order.address) {
 			error.address =
 				'Укажите корректный адрес: вы можете использовать русские и английские буквы, цифры, знаки препинания и пробелы';
-		}
-
-		if (!paymentPattern.test(this.order.payment) && !this.order.payment) {
-			error.payment = 'Укажите корректный способ оплаты';
 		}
 
 		this.formErrors = error;
@@ -120,10 +127,47 @@ export class AppState extends Model<IAppState> {
 		return Object.keys(error).length === 0;
 	}
 
+	setPaymentMethod(method: string) {
+		if (this.order.payment !== method) {
+			this.order.payment = method; 
+			this.emitChanges('payment:changed', { method });
+		}
+	}
+	
+
+	isItemInBasket(item: IItem): boolean {
+        return this.basket.includes(item);
+    }
+
+	getBasketCount(): number {
+		return this.basket.length;
+	}
+
+	getCatalog() {
+        return this.catalog;
+    }
+
+	updateDeliveryInfo() {
+		const isValid = this.validateDeliveryForm();
+		this.events.emit('deliveryForm:changed', {
+			valid: isValid,
+			errors: this.formatErrors(this.formErrors)
+		});
+	}
+
+	handleDeliveryFormSubmit() {
+		if (this.validateDeliveryForm()) {
+			this.events.emit('order:submit', this.prepareOrderData());
+		}
+	}
+
+	formatErrors(errors: Partial<IDeliveryForm>): string {
+		return Object.values(errors).filter(Boolean).join('; ');
+	}
+
+
 	clearOrder() {
 		Object.assign(this.order, {
-			items: [],
-			total: 0,
 			address: '',
 			payment: '',
 			email: '',

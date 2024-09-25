@@ -1,6 +1,6 @@
-import { Component } from '../base/Component';
-import { ensureElement } from '../../utils/utils';
-import { IItem } from '../../types';
+import { Component } from './base/Component';
+import { ensureElement } from '../utils/utils';
+import { IItem } from '../types';
 
 const categories = new Map<string, string>([
     ['soft-skill', 'card__category_soft'],
@@ -48,16 +48,8 @@ export class CardItem extends Component<IItem> {
 		this.container.dataset.id = value;
 	}
 
-	get id(): string {
-		return this.container.dataset.id || '';
-	}
-
 	set title(value: string) {
 		this.setText(this._title, value);
-	}
-
-	get title(): string {
-		return this._title.textContent || '';
 	}
 
 	set description(value: string | string[]) {
@@ -71,10 +63,6 @@ export class CardItem extends Component<IItem> {
         this.setText(this._price, priceText);
 	}
 
-	get price(): number {
-		return Number(this._price.textContent) || null;
-	}
-
     set category(value: string) {
         this.setText(this._category, value);
         const categoryClass = categories.get(value);
@@ -83,10 +71,6 @@ export class CardItem extends Component<IItem> {
             this._category.classList.add(categoryClass);
         }
     }
-
-	get category() {
-		return this._category.textContent || '';
-	}
 
     set image(value: string) {
 		this.setImage(this._image, value, this.title);
@@ -99,11 +83,7 @@ export class CardItem extends Component<IItem> {
 	}
 
 	set index(value: string) {
-		this._index.textContent = value;
-	}
-
-	get index(): string {
-		return this._index.textContent || '';
+		this.setText(this._index, value);
 	}
 
 	setDisabled() {

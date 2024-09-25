@@ -1,5 +1,5 @@
-import { Api, ApiListResponse } from '../base/Api';
-import { IOrder, IOrderComplete, IItem } from '../../types/index';
+import { Api, ApiListResponse } from './base/Api';
+import { IOrder, IOrderComplete, IItem } from '../types/index';
 
 export interface IMarketApi {
 	getItemList: () => Promise<IItem[]>;

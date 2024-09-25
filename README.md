@@ -102,8 +102,6 @@ interface IContactForm {
 
 ```
 interface IOrder extends IDeliveryForm, IContactForm {
-	items: string[],
-	total: number | null,
 }
 ```
 
@@ -121,7 +119,6 @@ interface IFormState {
 ```
 interface IOrderComplete{
     id: string,
-    total: number | null,
 }
 ```
 
@@ -181,6 +178,15 @@ export interface IAppState {
     preview: string | null;
     delivery: IDeliveryForm | null;
     contacts: IContactForm | null;
+}
+```
+
+Интерфейс, который описывает данные изменения в форме доставки:
+
+```
+export interface DeliveryFormChangeData {
+    valid: boolean;
+    errors: string;
 }
 ```
 
@@ -261,6 +267,7 @@ export type TErrorForm = Partial<Record<keyof IOrder, string>>;
 Основные методы, реализуемые классом:
 
 - `notifyFieldChange(field: keyof T, value: string): void` - уведомляет об изменении значений в полях формы, эмитирует события с новым значением поля
+- `setInputValue(input: HTMLInputElement, value:string)` - устанавливает значение для элемента ввода
 - `set valid(value: boolean)` - устанавливает состояние кнопки отправки формы
 - `set errors(value: string)` - устанавливает текст сообщения об ошибках валидации
 - `render(state: Partial<T> & IFormState): HTMLFormElement` - обновляет элементы и возвращает контейнер формы
@@ -281,18 +288,13 @@ export type TErrorForm = Partial<Record<keyof IOrder, string>>;
 Основные методы, реализуемые классом:
 
 - `set id(value: string)` - устанавливает идентификатор карточки с товаром
-- `get id(): string` - возвращает значение идентификатора карточки с товаром
 - `set title(value: string)` - устанавливает текст заголовка карточки
-- `get title(): string` - возвращает текст заголовка карточки
 - `set description(value: string | string[])` - устанавливает текст описания товара, принимает как одну строку, так и массив строк
 - `set price(value: number | null)` - устанавливает цену товара
-- `get price(): number` - возвращает цену товара
 - `set category(value: string)` - устанавливает название категории товара
-- `get category()` - возвращает данные о категории товара
 - `set image(value: string)` - устанавливает изображение товара
 - `set buttonText(value: string)` - устанавливает, какой текст будет отображаться на кнопке
 - `set index(value: string)` - устанавливает индекс товара
-- `get index(): string` - возвращает индекс товара
 - `setDisabled()` - отключает кнопку и делает её неактивной
 
 #### Класс ShoppingCart
@@ -334,11 +336,14 @@ export type TErrorForm = Partial<Record<keyof IOrder, string>>;
 - `card: HTMLButtonElement` - кнопка для выбора оплаты онлайн
 - `cash: HTMLButtonElement` - кнопка для выбора оплаты при получении
 - `addressInput: HTMLInputElement` - поле ввода для указания адреса доставки
+- `selectedPaymentMethod: string ` - свойство, которое хранит в себе метод оплаты
 
 Основные методы, реализуемые классом:
 
 - `set address(value: string)` - устанавливает значение поля адреса доставки
-- `switchButtons()` - переключает активное состояние кнопок оплаты
+- `handlePaymentClick(event: MouseEvent)` - обрабатывает клик по кнопке оплаты, выбирая соответствующий метод в зависимости от нажатой кнопки
+- `selectPaymentMethod(method: string)` - устанавливает выбранный метод оплаты, обновляет кнопки оплаты
+- `updatePaymentButtons()` - обновляет классы у кнопок оплаты
 
 #### Класс Success
 
@@ -350,7 +355,7 @@ export type TErrorForm = Partial<Record<keyof IOrder, string>>;
 
 Методы, реализуемые классом:
 
-- `set total(value: number | null) ` - устанавливает содержимое сообщения, отображая сумму покупок
+- `setTotal(value: number | null) ` - устанавливает содержимое сообщения, отображая сумму покупок
 
 ### Слой данных
 
@@ -379,12 +384,14 @@ export type TErrorForm = Partial<Record<keyof IOrder, string>>;
 
 - `basket: IItem[] = []` - список товаров в корзине
 - `catalog: IItem[] = []` - список товаров в каталоге
+- `shoppingCart: IShoppingCart = { items: [], total: 0 }` - состояние корзины покупок, включает в себя массив покупок и общую сумму
 - `formErrors: TErrorForm = {}` - ошибки валидации формы
 - `preview: string | null = null` - выбранный товар для предварительного просмотра
-- `order: IOrder = {items: [], total: 0, address: '', payment: 'online', email: '', phone: ''}` - данные о текущем заказе
+- `order: IOrder = { address: '', payment: 'online', email: '',phone: ''}` - данные о текущем заказе
 
 Так же класс предоставляет набор методов для взаимодействия с этими данными:
 
+- `prepareOrderData(): IOrder & { items: string[], total: number }` - подготавливает данные заказа
 - `setItems(items: IItem[])` - обновляет список товаров в каталоге
 - `setPreview(item: IItem)` - устанавливает предварительный просмотр
 - `updateCart(item: IItem, action: 'add' | 'remove')` - добавляет или удаляет товар из корзины, обновляет корзину после изменений
@@ -394,8 +401,16 @@ export type TErrorForm = Partial<Record<keyof IOrder, string>>;
 - `getTotalSum()` - вычисляет общую стоимость товаров в корзине
 - `setDeliveryField(field: keyof IDeliveryForm, value: string)` - устанавливает значение для поля доставки
 - `setContactField(field: keyof IContactForm, value: string)` - устанавливает значение для поля контактов
+- `setPaymentMethod(payment: string)` - устанавливает значение для поля `payment`
 - `validateDeliveryForm()` - проверяет корректность заполненных данных в форме доставки
 - `validateContactForm()` - проверяет корректность заполненных данных в форме контактов
+- `setPaymentMethod(method: string)` - обновляет способ оплаты заказа
+- `isItemInBasket(item: IItem): boolean` - проверяет наличие товара в корзине
+- `getBasketCount(): number` - проверяет количество товаров в корзине
+- `getCatalog()` - метод для получения каталога
+- `updateDeliveryInfo()` - обновляет информацию о доставке 
+- `handleDeliveryFormSubmit()` - обрабатывает отправленную форму доставки
+- `formatErrors(errors: Partial<IDeliveryForm>): string` - форматирует ошибки из формы доставки
 - `clearOrder()` - сбрасывает все данные заказа к первоначальным установкам
 
 ### Слой коммуникации

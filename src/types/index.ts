@@ -26,13 +26,11 @@ export interface IContactForm {
 }
 
 export interface IOrder extends IDeliveryForm, IContactForm {
-	items: string[],
-	total: number | null,
 }
 
 export interface IOrderComplete{
+	total(total: any): unknown;
     id: string,
-    total: number | null,
 }
 
 export interface IAppState {

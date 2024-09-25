@@ -40,6 +40,12 @@ export class Form<T> extends Component<IFormState> {
 		});
 	}
 
+	protected setInputValue(input: HTMLInputElement, value:string) {
+		if(input) {
+			input.value = value;
+		}
+	}
+
 	set valid(value: boolean) {
 		this.setDisabled(this._submit, !value);
 	}

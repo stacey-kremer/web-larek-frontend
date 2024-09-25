@@ -1,7 +1,7 @@
-import { IEvents } from '../base/Events';
-import { ensureElement } from '../../utils/utils';
-import { IContactForm } from '../../types';
-import { Form } from './Form';
+import { IEvents } from './base/Events';
+import { ensureElement } from '../utils/utils';
+import { IContactForm } from '../types';
+import { Form } from './common/Form';
 
 export class ContactForm extends Form<IContactForm> {
 	protected _emailInput: HTMLInputElement;
@@ -21,10 +21,10 @@ export class ContactForm extends Form<IContactForm> {
 	}
 
 	set phone(value: string) {
-		this._phoneInput.value = value;
+		this.setInputValue(this._phoneInput, value);
 	}
 
 	set email(value: string) {
-		this._emailInput.value = value;
+		this.setInputValue(this._emailInput, value);
 	}
 }

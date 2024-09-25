@@ -1,5 +1,5 @@
-import { Component } from '../base/Component';
-import { ensureElement } from '../../utils/utils';
+import { Component } from './base/Component';
+import { ensureElement } from '../utils/utils';
 
 interface ISuccess {
 	image: string;
@@ -33,7 +33,7 @@ export class Success extends Component<ISuccess> {
 		}
 	}
 
-	set total(value: number | null) {
+	setTotal(value: number | null) {
 		this._total.textContent = value !== null 
         ?`Списано ${value} синапсов`
         : `Сумма не указана`;

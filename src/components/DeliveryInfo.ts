@@ -3,6 +3,7 @@ import { ensureElement } from '../utils/utils';
 import { Form } from '../components/common/Form';
 import { IDeliveryForm } from '../types';
 import { IItemActions } from './Card';
+import { AppState } from './AppState';
 
 export const paymentMethod: { [key: string]: string } = {
 	card: 'online',
@@ -13,7 +14,6 @@ export class DeliveryForm extends Form<IDeliveryForm> {
 	protected _card: HTMLButtonElement;
 	protected _cash: HTMLButtonElement;
 	protected _addressInput: HTMLInputElement;
-	protected _selectedPaymentMethod: string = paymentMethod.card;
 
 	constructor(
 		container: HTMLFormElement,
@@ -40,26 +40,22 @@ export class DeliveryForm extends Form<IDeliveryForm> {
 	}
 
 	set address(value: string) {
-		this._addressInput.value = value;
+		this.setInputValue(this._addressInput, value);
 	}
 
 	handlePaymentClick(event: MouseEvent) {
 		const target = event.target as HTMLButtonElement;
-		if (target === this._card) {
-			this.selectPaymentMethod(paymentMethod.card);
-		} else if (target === this._cash) {
-			this.selectPaymentMethod(paymentMethod.cash);
-		}
-	}
-
-	selectPaymentMethod(method: string) {
-		this._selectedPaymentMethod = method;
-		this.updatePaymentButtons();
+		const method = target === this._card ? paymentMethod.card : paymentMethod.cash;
 		this.events.emit('payment:changed', { method });
 	}
 
-	updatePaymentButtons() {
-		this._card.classList.toggle('button_alt-active', this._selectedPaymentMethod === paymentMethod.card);
-		this._cash.classList.toggle('button_alt-active', this._selectedPaymentMethod === paymentMethod.cash);
+	updatePaymentButtons(selectedMethod: string) {
+		this.toggleClass(this._card, 'button_alt-active', selectedMethod === paymentMethod.card); 
+		this.toggleClass(this._cash, 'button_alt-active', selectedMethod === paymentMethod.cash); 
+	}
+
+	updatePaymentButtonsFromState(appState: AppState) {
+		const selectedMethod = appState.order.payment; 
+		this.updatePaymentButtons(selectedMethod);
 	}
 }

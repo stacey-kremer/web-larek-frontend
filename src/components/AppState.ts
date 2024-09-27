@@ -4,7 +4,6 @@ import {
 	IAppState,
 	IItem,
 	IOrder,
-	IShoppingCart,
 	IDeliveryForm,
 	IContactForm,
 } from '../types';
@@ -21,10 +20,6 @@ export interface DeliveryFormChangeData {
 export class AppState extends Model<IAppState> {
 	basket: IItem[] = [];
 	catalog: IItem[] = [];
-	shoppingCart: IShoppingCart = {
-		items: [],
-		total: 0,
-	};
 	formErrors: TErrorForm = {};
 	preview: string | null = null;
 
@@ -34,6 +29,13 @@ export class AppState extends Model<IAppState> {
 		email: '',
 		phone: '',
 	};
+
+	getCart() {
+		return {
+			items: this.basket,
+			total: this.getTotalSum(),
+		};
+	}
 
 	prepareOrderData(): IOrder & { items: string[], total: number } {
 		const orderData = {
@@ -62,8 +64,7 @@ export class AppState extends Model<IAppState> {
 		} else {
 			this.basket = this.basket.filter((elem) => elem !== item);
 		}
-		this.emitChanges('basket:changed', this.basket);
-		this.emitChanges('count:changed', this.basket);
+		this.emitChanges('basket:changed', this.basket); 
 	}
 
 	addItemToCart(item: IItem) {
@@ -97,11 +98,9 @@ export class AppState extends Model<IAppState> {
 
 	validateDeliveryForm() {
 		const error: Partial<IDeliveryForm> = {};
-		const addressPattern = /^[а-яА-Яa-zA-Z0-9.,!?:;\-()'" ]+$/i;
 
-		if (!addressPattern.test(this.order.address) || !this.order.address) {
-			error.address =
-				'Укажите корректный адрес: вы можете использовать русские и английские буквы, цифры, знаки препинания и пробелы';
+		if (!this.order.address) {
+			error.address = 'Поле адреса не должно быть пустым';
 		}
 
 		this.formErrors = error;
@@ -164,7 +163,6 @@ export class AppState extends Model<IAppState> {
 	formatErrors(errors: Partial<IDeliveryForm>): string {
 		return Object.values(errors).filter(Boolean).join('; ');
 	}
-
 
 	clearOrder() {
 		Object.assign(this.order, {

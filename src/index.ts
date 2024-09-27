@@ -30,8 +30,8 @@ const api = new MarketApi(CDN_URL, API_URL);
 
 // Другие инициализации
 const modal = new Modal(ensureElement<HTMLElement>('#modal-container'), events);
-const basket = new ShoppingCart(cloneTemplate(shoppingCartTemplate), events);
 const appState = new AppState({}, events);
+const basket = new ShoppingCart(cloneTemplate(shoppingCartTemplate), events, appState);
 const page = new Page(document.body, events);
 const сontactInf = new ContactForm(cloneTemplate(contactsTemplate), events);
 const deliveryInf = new DeliveryForm(cloneTemplate(deliveryTemplate), events, {
@@ -49,6 +49,7 @@ events.on<CatalogChanged>('items:changed', () => {
 		const card = new CardItem(cloneTemplate(catalogTemplate), {
 			onClick: () => events.emit('card:select', item),
 		});
+		
 		return card.render({
 			category: item.category,
 			title: item.title,
@@ -95,52 +96,51 @@ events.on('preview:changed', (item: IItem) => {
 
 // Проверка, связанная с добавлением/удалением товара из корзины
 events.on('item:check', (item: IItem) => {
-	if (appState.isItemInBasket(item)) {
-		events.emit('item:delete', item);
-		appState.removeItemFromCart(item);
-	} else {
-		events.emit('item:add', item);
-		appState.addItemToCart(item);
-	}
+    const isInBasket = appState.isItemInBasket(item);
+    const action = isInBasket ? 'delete' : 'add';
+    handleCartAction(item, action);
 });
+
+function handleCartAction(item: IItem, action: 'add' | 'delete') {
+    events.emit(`item:${action}`, item);
+}
 
 // Добавление товара в корзину
 events.on('item:add', (item: IItem) => {
-	appState.addItemToCart(item);
+    appState.addItemToCart(item);
 });
 
 // Удаление товара из корзины
 events.on('item:delete', (item: IItem) => {
-	appState.removeItemFromCart(item);
+    appState.removeItemFromCart(item);
 });
 
 // Обновление корзины
 // Отрисовка списка товаров в корзине и подсчет суммы
 events.on('basket:changed', (items: IItem[]) => {
-	appState.basket = items;
-	basket.items = items.map((item, count) => {
-		const card = new CardItem(cloneTemplate(cardInShoppingCartTemplate), {
-			onClick: () => {
-				events.emit('item:delete', item);
-			},
-		});
-		return card.render({
-			title: item.title,
-			price: item.price,
-			count: (count + 1).toString(),
-		});
-	});
-	const total = appState.getTotalSum();
-	basket.totalSum = total;
+    basket.items = items.map((item, count) => {
+        const card = new CardItem(cloneTemplate(cardInShoppingCartTemplate), {
+            onClick: () => {
+                events.emit('item:delete', item);
+            },
+        });
+        return card.render({
+            title: item.title,
+            price: item.price,
+            count: (count + 1).toString(),
+			index: (count + 1).toString(),
+        });
+    });
+
+    basket.updateTotalSum(); 
+	// Внесла изменения в класс ShoppingCart: 
+	// Теперь AppState управляет данными, 
+	// а ShoppingCart отвечает за отображение этих данных
+
+    // Обновление счетчика товаров в корзине
+    const itemCount = appState.getBasketCount(); 
+    page.counter = itemCount;
 });
-
-// Обновление счетчика товаров в корзине
-const updateCounter = () => {
-	const itemCount = appState.getBasketCount(); 
-	page.counter = itemCount;
-};
-
-events.on('count:changed', updateCounter);
 
 //Открытие модального окна с корзиной
 const openBasketModal = () => {
@@ -164,8 +164,6 @@ const openOrder = () => {
 	modal.render({
 		content: deliveryContent,
 	});
-
-	const orderData = appState.prepareOrderData();
 };
 
 events.on('order:open', openOrder);
@@ -173,9 +171,11 @@ events.on('order:open', openOrder);
 // Обработка изменения способа оплаты
 events.on('payment:changed', handlePaymentChange);
 
-function handlePaymentChange({ method }: { method: string }) {
-    appState.setPaymentMethod(method); 
-    deliveryInf.updatePaymentButtons();
+function handlePaymentChange({ method }: { method: string }) { 
+    appState.setPaymentMethod(method);  
+    deliveryInf.updatePaymentButtonsFromState(appState); 
+	// Теперь метод оплаты устанавливается в AppState,
+	// и кнопки обновляются на основе текущего состояния модели
 }
 
 // Изменение полей формы доставки
@@ -194,8 +194,6 @@ events.on('deliveryForm:changed', (data: DeliveryFormChangeData) => {
     deliveryInf.valid = data.valid; 
     deliveryInf.errors = data.errors; 
 });
-
-
 
 //Переход к заполнению контактных данных
 events.on('order:submit', () => {

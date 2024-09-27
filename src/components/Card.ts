@@ -3,11 +3,11 @@ import { ensureElement } from '../utils/utils';
 import { IItem } from '../types';
 
 const categories = new Map<string, string>([
-    ['soft-skill', 'card__category_soft'],
-    ['other', 'card__category_other'],
-    ['hard-skill', 'card__category_hard'],
-    ['additional', 'card__category_additional'],
-    ['button', 'card__category_button'],
+    ['софт-скил', 'card__category_soft'],
+    ['другое', 'card__category_other'],
+    ['хард-скил', 'card__category_hard'],
+    ['дополнительное', 'card__category_additional'],
+    ['кнопка', 'card__category_button'],
 ]);
 
 export interface IItemActions {
@@ -60,13 +60,15 @@ export class CardItem extends Component<IItem> {
 
 	set price(value: number | null) {
 		const priceText = value === null ? 'Бесценно' : `${value} синапсов`;
-        this.setText(this._price, priceText);
+		this.setText(this._price, priceText);
+		this.setButtonDisabled(value === null);
 	}
 
     set category(value: string) {
         this.setText(this._category, value);
         const categoryClass = categories.get(value);
         
+		this._category.className = 'card__category'; 
         if (categoryClass) {
             this._category.classList.add(categoryClass);
         }
@@ -86,9 +88,9 @@ export class CardItem extends Component<IItem> {
 		this.setText(this._index, value);
 	}
 
-	setDisabled() {
+	setButtonDisabled(state: boolean) {
 		if (this._button) {
-            this._button.disabled = true;
-        }
+			super.setDisabled(this._button, state); 
+		}
 	}
 }

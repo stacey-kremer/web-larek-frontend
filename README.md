@@ -295,7 +295,7 @@ export type TErrorForm = Partial<Record<keyof IOrder, string>>;
 - `set image(value: string)` - устанавливает изображение товара
 - `set buttonText(value: string)` - устанавливает, какой текст будет отображаться на кнопке
 - `set index(value: string)` - устанавливает индекс товара
-- `setDisabled()` - отключает кнопку и делает её неактивной
+- `setButtonDisabled()` - отключает кнопку и делает её неактивной
 
 #### Класс ShoppingCart
 
@@ -312,7 +312,7 @@ export type TErrorForm = Partial<Record<keyof IOrder, string>>;
 - `setupEventListeners(): void` - настравиает обработчики событий
 - `createMessage(): HTMLParagraphElement` - создает элемент с сообщением о том, что корзина пуста
 - `set items(items: HTMLElement[])` - обновляет содержимое и устанавливает список товаров в корзине
-- `set totalSum(totalSum: number)` - устанавливает общую сумму покупок
+- ` updateTotalSum()` - получает сумму, которая вычисляется через AppState
 
 #### Класс ContactForm
 
@@ -336,14 +336,14 @@ export type TErrorForm = Partial<Record<keyof IOrder, string>>;
 - `card: HTMLButtonElement` - кнопка для выбора оплаты онлайн
 - `cash: HTMLButtonElement` - кнопка для выбора оплаты при получении
 - `addressInput: HTMLInputElement` - поле ввода для указания адреса доставки
-- `selectedPaymentMethod: string ` - свойство, которое хранит в себе метод оплаты
 
 Основные методы, реализуемые классом:
 
 - `set address(value: string)` - устанавливает значение поля адреса доставки
 - `handlePaymentClick(event: MouseEvent)` - обрабатывает клик по кнопке оплаты, выбирая соответствующий метод в зависимости от нажатой кнопки
-- `selectPaymentMethod(method: string)` - устанавливает выбранный метод оплаты, обновляет кнопки оплаты
-- `updatePaymentButtons()` - обновляет классы у кнопок оплаты
+<!-- - `selectPaymentMethod(method: string)` - устанавливает выбранный метод оплаты, обновляет кнопки оплаты -->
+- `updatePaymentButtons()` - обновляет визуальное состояние кнопок оплаты в зависимости от выбранного метода
+- `updatePaymentButtonsFromState(appState: AppState)` - извлекает выбранный метод оплаты из AppState и вызывает updatePaymentButtons, чтобы обновить визуальное состояние кнопок
 
 #### Класс Success
 
@@ -384,13 +384,13 @@ export type TErrorForm = Partial<Record<keyof IOrder, string>>;
 
 - `basket: IItem[] = []` - список товаров в корзине
 - `catalog: IItem[] = []` - список товаров в каталоге
-- `shoppingCart: IShoppingCart = { items: [], total: 0 }` - состояние корзины покупок, включает в себя массив покупок и общую сумму
 - `formErrors: TErrorForm = {}` - ошибки валидации формы
 - `preview: string | null = null` - выбранный товар для предварительного просмотра
 - `order: IOrder = { address: '', payment: 'online', email: '',phone: ''}` - данные о текущем заказе
 
 Так же класс предоставляет набор методов для взаимодействия с этими данными:
 
+- `getCart()` - собирает данные о товарах в корзине и их общей стоимости, упрощая доступ к этой информации для других компонентов приложения
 - `prepareOrderData(): IOrder & { items: string[], total: number }` - подготавливает данные заказа
 - `setItems(items: IItem[])` - обновляет список товаров в каталоге
 - `setPreview(item: IItem)` - устанавливает предварительный просмотр

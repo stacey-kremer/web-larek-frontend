@@ -87,6 +87,7 @@ export class AppState extends Model<IAppState> {
 	setDeliveryField(field: keyof IDeliveryForm, value: string) {
 		this.order[field] = value;
 		this.updateDeliveryInfo(); 
+		this.validateDeliveryForm();
 	}
 
 	setContactField(field: keyof IContactForm, value: string) {
@@ -99,6 +100,10 @@ export class AppState extends Model<IAppState> {
 	validateDeliveryForm() {
 		const error: Partial<IDeliveryForm> = {};
 
+		if (!this.order.payment) {
+			error.payment = 'Необходимо указать способ оплаты';
+		}
+
 		if (!this.order.address) {
 			error.address = 'Поле адреса не должно быть пустым';
 		}
@@ -110,29 +115,19 @@ export class AppState extends Model<IAppState> {
 
 	validateContactForm() {
 		const error: typeof this.formErrors = {};
-		const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-		const phonePattern = /^([+]?[0-9\s-\(\)]{11,14})*$/i;
 
-		if (!emailPattern.test(this.order.email) || !this.order.email) {
-			error.email = 'Укажите корректный email в формате email@email.com';
+		if (!this.order.email) {
+			error.email = 'Необходимо указать email';
 		}
 
-		if (!phonePattern.test(this.order.phone) || !this.order.phone) {
-			error.phone = 'Укажите корректный номер телефона в формате +79ХХХХХХХХХ';
+		if (!this.order.phone) {
+			error.phone = 'Необходимо указать номер телефона';
 		}
 
 		this.formErrors = error;
 		this.events.emit('contactForm:changed', this.formErrors);
 		return Object.keys(error).length === 0;
 	}
-
-	setPaymentMethod(method: string) {
-		if (this.order.payment !== method) {
-			this.order.payment = method; 
-			this.emitChanges('payment:changed', { method });
-		}
-	}
-	
 
 	isItemInBasket(item: IItem): boolean {
         return this.basket.includes(item);
@@ -171,5 +166,8 @@ export class AppState extends Model<IAppState> {
 			email: '',
 			phone: '',
 		});
+	this.formErrors = {}; 
+    this.events.emit('deliveryForm:changed', this.formErrors); 
+    this.events.emit('contactForm:changed', this.formErrors);
 	}
 }

@@ -340,10 +340,7 @@ export type TErrorForm = Partial<Record<keyof IOrder, string>>;
 Основные методы, реализуемые классом:
 
 - `set address(value: string)` - устанавливает значение поля адреса доставки
-- `handlePaymentClick(event: MouseEvent)` - обрабатывает клик по кнопке оплаты, выбирая соответствующий метод в зависимости от нажатой кнопки
-<!-- - `selectPaymentMethod(method: string)` - устанавливает выбранный метод оплаты, обновляет кнопки оплаты -->
-- `updatePaymentButtons()` - обновляет визуальное состояние кнопок оплаты в зависимости от выбранного метода
-- `updatePaymentButtonsFromState(appState: AppState)` - извлекает выбранный метод оплаты из AppState и вызывает updatePaymentButtons, чтобы обновить визуальное состояние кнопок
+- `resetPaymentButtons()` - используется для сброса состояния кнопок при выборе способа оплаты
 
 #### Класс Success
 
@@ -401,10 +398,8 @@ export type TErrorForm = Partial<Record<keyof IOrder, string>>;
 - `getTotalSum()` - вычисляет общую стоимость товаров в корзине
 - `setDeliveryField(field: keyof IDeliveryForm, value: string)` - устанавливает значение для поля доставки
 - `setContactField(field: keyof IContactForm, value: string)` - устанавливает значение для поля контактов
-- `setPaymentMethod(payment: string)` - устанавливает значение для поля `payment`
 - `validateDeliveryForm()` - проверяет корректность заполненных данных в форме доставки
 - `validateContactForm()` - проверяет корректность заполненных данных в форме контактов
-- `setPaymentMethod(method: string)` - обновляет способ оплаты заказа
 - `isItemInBasket(item: IItem): boolean` - проверяет наличие товара в корзине
 - `getBasketCount(): number` - проверяет количество товаров в корзине
 - `getCatalog()` - метод для получения каталога
@@ -446,10 +441,8 @@ _События, возникающие при взаимодействии по
 - `preview:changed` - обновление модального окна с предпросмотром товара
 - `basket:changed` - изменения данных в корзине
 - `deliveryForm:changed` - обработка информации, связанной с доставкой и оплатой
-- `contactForm:changed` - изменилось одно из полей формы контактных данных
-- `payment:changed` - изменение способа оплаты
-- `count:changed` - обновление счетчика товаров в корзине
 - `contactForm:changed` - обработка информации, связанная с контактами покупателя
+- `count:changed` - обновление счетчика товаров в корзине
 
 - `card:select` - выбор карточки с товаром
 - `item:check` - проверка, связанная с добавлением/удалением товара из корзины

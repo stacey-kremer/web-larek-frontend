@@ -2,17 +2,14 @@ import { IShoppingCart } from '../types';
 import { createElement, ensureElement } from '../utils/utils';
 import { Component } from './base/Component';
 import { IEvents } from './base/Events';
-import { AppState } from './AppState';
 
 export class ShoppingCart extends Component<IShoppingCart> {
 	protected _list: HTMLElement;
 	protected _totalSum: HTMLElement;
 	protected _buttonElement: HTMLButtonElement;
-    private appState: AppState;
 
-	constructor(container: HTMLElement, protected events: IEvents, appState: AppState) {
+	constructor(container: HTMLElement, protected events: IEvents) {
 		super(container);
-        this.appState = appState;
 
 		this._list = ensureElement<HTMLElement>('.basket__list', this.container);
 		this._totalSum = this.container.querySelector('.basket__price');
@@ -20,6 +17,8 @@ export class ShoppingCart extends Component<IShoppingCart> {
 
 		this.items = [];
         this.setupEventListeners();
+
+        this.events.on('total:changed', this.updateTotalSum.bind(this));
 	}
 
     setupEventListeners(): void {
@@ -39,11 +38,9 @@ export class ShoppingCart extends Component<IShoppingCart> {
             ...items.length ? items : [this.createMessage()]
         );
         this.setDisabled(this._buttonElement, items.length === 0);
-        this.updateTotalSum();
     }
 
-    updateTotalSum() {
-        const total = this.appState.getTotalSum(); // Получаем сумму, которая вычисляется через AppState
+    updateTotalSum(total: number) {
         this.setText(this._totalSum, `${total} синапсов`);
     }
 }

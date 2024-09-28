@@ -3,7 +3,7 @@ import './scss/styles.scss';
 import { AppState, CatalogChanged, DeliveryFormChangeData } from './components/AppState';
 import { CardItem } from './components/Card';
 import { ContactForm } from './components/ContactInfo';
-import { DeliveryForm, paymentMethod } from './components/DeliveryInfo';
+import { DeliveryForm } from './components/DeliveryInfo';
 import { MarketApi } from './components/MarketAPI';
 import { EventEmitter } from './components/base/Events';
 import { Modal } from './components/common/Modal';
@@ -31,14 +31,10 @@ const api = new MarketApi(CDN_URL, API_URL);
 // Другие инициализации
 const modal = new Modal(ensureElement<HTMLElement>('#modal-container'), events);
 const appState = new AppState({}, events);
-const basket = new ShoppingCart(cloneTemplate(shoppingCartTemplate), events, appState);
+const basket = new ShoppingCart(cloneTemplate(shoppingCartTemplate), events);
 const page = new Page(document.body, events);
 const сontactInf = new ContactForm(cloneTemplate(contactsTemplate), events);
-const deliveryInf = new DeliveryForm(cloneTemplate(deliveryTemplate), events, {
-	onClick: (event: Event) => {
-		events.emit('payment:changed', event.target);
-	},
-});
+const deliveryInf = new DeliveryForm(cloneTemplate(deliveryTemplate), events);
 const success =  new Success(cloneTemplate(successTemplate), {
     onClick: () => modal.close(),
 });
@@ -127,15 +123,11 @@ events.on('basket:changed', (items: IItem[]) => {
         return card.render({
             title: item.title,
             price: item.price,
-            count: (count + 1).toString(),
 			index: (count + 1).toString(),
         });
     });
 
-    basket.updateTotalSum(); 
-	// Внесла изменения в класс ShoppingCart: 
-	// Теперь AppState управляет данными, 
-	// а ShoppingCart отвечает за отображение этих данных
+	basket.updateTotalSum(appState.getTotalSum());
 
     // Обновление счетчика товаров в корзине
     const itemCount = appState.getBasketCount(); 
@@ -154,6 +146,7 @@ events.on('basket:open', openBasketModal);
 
 // Открытие формы заказа
 const openOrder = () => {
+	appState.clearOrder();
 	const deliveryContent = deliveryInf.render({
 		payment: '',
 		address: '',
@@ -168,16 +161,6 @@ const openOrder = () => {
 
 events.on('order:open', openOrder);
 
-// Обработка изменения способа оплаты
-events.on('payment:changed', handlePaymentChange);
-
-function handlePaymentChange({ method }: { method: string }) { 
-    appState.setPaymentMethod(method);  
-    deliveryInf.updatePaymentButtonsFromState(appState); 
-	// Теперь метод оплаты устанавливается в AppState,
-	// и кнопки обновляются на основе текущего состояния модели
-}
-
 // Изменение полей формы доставки
 events.on(/^order\..*:change/, handleOrderChange);
 
@@ -190,9 +173,13 @@ function handleOrderChange(data: {
 }
 
 // Обработка информации, связанной с доставкой и оплатой
-events.on('deliveryForm:changed', (data: DeliveryFormChangeData) => {
-    deliveryInf.valid = data.valid; 
-    deliveryInf.errors = data.errors; 
+events.on('deliveryForm:changed', (data: Partial<IDeliveryForm>) => {
+    const { payment, address } = data;
+	deliveryInf.valid = !payment && !address;
+	deliveryInf.errors = Object.values({ payment, address })
+		.filter((i) => !!i)
+		.join('; ');
+	``;
 });
 
 //Переход к заполнению контактных данных

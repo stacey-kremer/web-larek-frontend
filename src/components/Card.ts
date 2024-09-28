@@ -66,13 +66,15 @@ export class CardItem extends Component<IItem> {
 
     set category(value: string) {
         this.setText(this._category, value);
-        const categoryClass = categories.get(value);
         
-		this._category.className = 'card__category'; 
-        if (categoryClass) {
-            this._category.classList.add(categoryClass);
-        }
-    }
+		const allCategoryClasses = Array.from(categories.values());
+    	allCategoryClasses.forEach(className => this.toggleClass(this._category, className, false));
+
+    	const categoryClass = categories.get(value); 
+    	if (categoryClass) { 
+        this.toggleClass(this._category, categoryClass, true); 
+    	}
+	}
 
     set image(value: string) {
 		this.setImage(this._image, value, this.title);

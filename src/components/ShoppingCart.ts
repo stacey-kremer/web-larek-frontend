@@ -16,31 +16,31 @@ export class ShoppingCart extends Component<IShoppingCart> {
 		this._buttonElement = this.container.querySelector('.basket__button');
 
 		this.items = [];
-        this.setupEventListeners();
+		this.setupEventListeners();
 
-        this.events.on('total:changed', this.updateTotalSum.bind(this));
+		this.events.on('total:changed', this.updateTotalSum.bind(this));
 	}
 
-    setupEventListeners(): void {
-        this._buttonElement?.addEventListener('click', () => {
-            this.events.emit('order:open');
-        });
-    }
+	setupEventListeners(): void {
+		this._buttonElement?.addEventListener('click', () => {
+			this.events.emit('order:open');
+		});
+	}
 
-    createMessage(): HTMLParagraphElement {
-        return createElement<HTMLParagraphElement>('p', {
-            textContent: 'Ваша корзина пуста',
-        });
-    }
+	createMessage(): HTMLParagraphElement {
+		return createElement<HTMLParagraphElement>('p', {
+			textContent: 'Ваша корзина пуста',
+		});
+	}
 
 	set items(items: HTMLElement[]) {
-        this._list.replaceChildren(
-            ...items.length ? items : [this.createMessage()]
-        );
-        this.setDisabled(this._buttonElement, items.length === 0);
-    }
+		this._list.replaceChildren(
+			...(items.length ? items : [this.createMessage()])
+		);
+		this.setDisabled(this._buttonElement, items.length === 0);
+	}
 
-    updateTotalSum(total: number) {
-        this.setText(this._totalSum, `${total} синапсов`);
-    }
+	updateTotalSum(total: number) {
+		this.setText(this._totalSum, `${total} синапсов`);
+	}
 }

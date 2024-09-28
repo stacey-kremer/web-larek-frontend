@@ -3,11 +3,11 @@ import { ensureElement } from '../utils/utils';
 import { IItem } from '../types';
 
 const categories = new Map<string, string>([
-    ['софт-скил', 'card__category_soft'],
-    ['другое', 'card__category_other'],
-    ['хард-скил', 'card__category_hard'],
-    ['дополнительное', 'card__category_additional'],
-    ['кнопка', 'card__category_button'],
+	['софт-скил', 'card__category_soft'],
+	['другое', 'card__category_other'],
+	['хард-скил', 'card__category_hard'],
+	['дополнительное', 'card__category_additional'],
+	['кнопка', 'card__category_button'],
 ]);
 
 export interface IItemActions {
@@ -15,9 +15,9 @@ export interface IItemActions {
 }
 
 export class CardItem extends Component<IItem> {
-    protected _title: HTMLElement;
-    protected _description: HTMLElement;
-    protected _price: HTMLElement;
+	protected _title: HTMLElement;
+	protected _description: HTMLElement;
+	protected _price: HTMLElement;
 	protected _category: HTMLElement;
 	protected _image: HTMLImageElement;
 	protected _button: HTMLButtonElement;
@@ -26,14 +26,13 @@ export class CardItem extends Component<IItem> {
 	constructor(container: HTMLElement, actions?: IItemActions) {
 		super(container);
 
-        this._title = ensureElement<HTMLElement>('.card__title', container);
+		this._title = ensureElement<HTMLElement>('.card__title', container);
 		this._description = container.querySelector('.card__text');
-        this._price = ensureElement<HTMLElement>('.card__price', container);
-        this._category = container.querySelector('.card__category');
+		this._price = ensureElement<HTMLElement>('.card__price', container);
+		this._category = container.querySelector('.card__category');
 		this._image = container.querySelector('.card__image');
 		this._button = container.querySelector('.button');
 		this._index = container.querySelector('.basket__item-index');
-		
 
 		if (actions?.onClick) {
 			if (this._button) {
@@ -64,23 +63,25 @@ export class CardItem extends Component<IItem> {
 		this.setButtonDisabled(value === null);
 	}
 
-    set category(value: string) {
-        this.setText(this._category, value);
-        
-		const allCategoryClasses = Array.from(categories.values());
-    	allCategoryClasses.forEach(className => this.toggleClass(this._category, className, false));
+	set category(value: string) {
+		this.setText(this._category, value);
 
-    	const categoryClass = categories.get(value); 
-    	if (categoryClass) { 
-        this.toggleClass(this._category, categoryClass, true); 
-    	}
+		const allCategoryClasses = Array.from(categories.values());
+		allCategoryClasses.forEach((className) =>
+			this.toggleClass(this._category, className, false)
+		);
+
+		const categoryClass = categories.get(value);
+		if (categoryClass) {
+			this.toggleClass(this._category, categoryClass, true);
+		}
 	}
 
-    set image(value: string) {
+	set image(value: string) {
 		this.setImage(this._image, value, this.title);
 	}
 
-    set buttonText(value: string) {
+	set buttonText(value: string) {
 		if (this._button) {
 			this.setText(this._button, value);
 		}
@@ -92,7 +93,7 @@ export class CardItem extends Component<IItem> {
 
 	setButtonDisabled(state: boolean) {
 		if (this._button) {
-			super.setDisabled(this._button, state); 
+			super.setDisabled(this._button, state);
 		}
 	}
 }

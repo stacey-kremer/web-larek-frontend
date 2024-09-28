@@ -13,8 +13,8 @@ export type CatalogChanged = {
 };
 
 export interface DeliveryFormChangeData {
-    valid: boolean;
-    errors: string;
+	valid: boolean;
+	errors: string;
 }
 
 export class AppState extends Model<IAppState> {
@@ -37,10 +37,10 @@ export class AppState extends Model<IAppState> {
 		};
 	}
 
-	prepareOrderData(): IOrder & { items: string[], total: number } {
+	prepareOrderData(): IOrder & { items: string[]; total: number } {
 		const orderData = {
 			...this.order,
-			items: this.basket.map(item => item.id),
+			items: this.basket.map((item) => item.id),
 			total: this.getTotalSum(),
 		};
 		return orderData;
@@ -64,7 +64,7 @@ export class AppState extends Model<IAppState> {
 		} else {
 			this.basket = this.basket.filter((elem) => elem !== item);
 		}
-		this.emitChanges('basket:changed', this.basket); 
+		this.emitChanges('basket:changed', this.basket);
 	}
 
 	addItemToCart(item: IItem) {
@@ -86,7 +86,7 @@ export class AppState extends Model<IAppState> {
 
 	setDeliveryField(field: keyof IDeliveryForm, value: string) {
 		this.order[field] = value;
-		this.updateDeliveryInfo(); 
+		this.updateDeliveryInfo();
 		this.validateDeliveryForm();
 	}
 
@@ -130,22 +130,22 @@ export class AppState extends Model<IAppState> {
 	}
 
 	isItemInBasket(item: IItem): boolean {
-        return this.basket.includes(item);
-    }
+		return this.basket.includes(item);
+	}
 
 	getBasketCount(): number {
 		return this.basket.length;
 	}
 
 	getCatalog() {
-        return this.catalog;
-    }
+		return this.catalog;
+	}
 
 	updateDeliveryInfo() {
 		const isValid = this.validateDeliveryForm();
 		this.events.emit('deliveryForm:changed', {
 			valid: isValid,
-			errors: this.formatErrors(this.formErrors)
+			errors: this.formatErrors(this.formErrors),
 		});
 	}
 
@@ -166,8 +166,8 @@ export class AppState extends Model<IAppState> {
 			email: '',
 			phone: '',
 		});
-	this.formErrors = {}; 
-    this.events.emit('deliveryForm:changed', this.formErrors); 
-    this.events.emit('contactForm:changed', this.formErrors);
+		this.formErrors = {};
+		this.events.emit('deliveryForm:changed', this.formErrors);
+		this.events.emit('contactForm:changed', this.formErrors);
 	}
 }

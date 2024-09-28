@@ -34,9 +34,8 @@ export class Success extends Component<ISuccess> {
 	}
 
 	setTotal(value: number | null) {
-		const totalText = value !== null 
-			? `Списано ${value} синапсов`
-			: `Сумма не указана`;
-		this.setText(this._total, totalText); 
+		const totalText =
+			value !== null ? `Списано ${value} синапсов` : `Сумма не указана`;
+		this.setText(this._total, totalText);
 	}
 }

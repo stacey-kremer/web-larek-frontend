@@ -17,7 +17,7 @@ export class DeliveryForm extends Form<IDeliveryForm> {
 		);
 		this._card = container.elements.namedItem('card') as HTMLButtonElement;
 		this._cash = container.elements.namedItem('cash') as HTMLButtonElement;
-		this.toggleClass(this._card, 'button_alt-active'); 
+		this.toggleClass(this._card, 'button_alt-active');
 
 		if (this._cash) {
 			this._cash.addEventListener('click', () => {
@@ -40,7 +40,7 @@ export class DeliveryForm extends Form<IDeliveryForm> {
 	}
 
 	resetPaymentButtons() {
-	this.toggleClass(this._cash, 'button_alt-active', false);
-    this.toggleClass(this._card, 'button_alt-active', false);
+		this.toggleClass(this._cash, 'button_alt-active', false);
+		this.toggleClass(this._card, 'button_alt-active', false);
 	}
 }

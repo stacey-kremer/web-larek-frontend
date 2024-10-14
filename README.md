@@ -339,6 +339,9 @@ export type TErrorForm = Partial<Record<keyof IOrder, string>>;
 
 Основные методы, реализуемые классом:
 
+- `initPaymentButtons()` - инициализирует кнопки выбора способа оплаты и добавляет обработчики событий на кнопки
+- `notifyPaymentChange(method: 'cash' | 'card')` - уведомляет презентер о выборе способа оплаты
+- `updatePaymentButtonState(paymentMethod: 'cash' | 'card')` - обновляет состояние кнопок выбора способа оплаты в форме доставки
 - `set address(value: string)` - устанавливает значение поля адреса доставки
 - `resetPaymentButtons()` - используется для сброса состояния кнопок при выборе способа оплаты
 
@@ -387,7 +390,6 @@ export type TErrorForm = Partial<Record<keyof IOrder, string>>;
 
 Так же класс предоставляет набор методов для взаимодействия с этими данными:
 
-- `getCart()` - собирает данные о товарах в корзине и их общей стоимости, упрощая доступ к этой информации для других компонентов приложения
 - `prepareOrderData(): IOrder & { items: string[], total: number }` - подготавливает данные заказа
 - `setItems(items: IItem[])` - обновляет список товаров в каталоге
 - `setPreview(item: IItem)` - устанавливает предварительный просмотр
@@ -403,8 +405,6 @@ export type TErrorForm = Partial<Record<keyof IOrder, string>>;
 - `isItemInBasket(item: IItem): boolean` - проверяет наличие товара в корзине
 - `getBasketCount(): number` - проверяет количество товаров в корзине
 - `getCatalog()` - метод для получения каталога
-- `updateDeliveryInfo()` - обновляет информацию о доставке 
-- `handleDeliveryFormSubmit()` - обрабатывает отправленную форму доставки
 - `formatErrors(errors: Partial<IDeliveryForm>): string` - форматирует ошибки из формы доставки
 - `clearOrder()` - сбрасывает все данные заказа к первоначальным установкам
 
@@ -441,8 +441,9 @@ _События, возникающие при взаимодействии по
 - `preview:changed` - обновление модального окна с предпросмотром товара
 - `basket:changed` - изменения данных в корзине
 - `deliveryForm:changed` - обработка информации, связанной с доставкой и оплатой
-- `contactForm:changed` - обработка информации, связанная с контактами покупателя
+- `contactForm:changed` - обработка информации, связанной с контактами покупателя
 - `count:changed` - обновление счетчика товаров в корзине
+- `payment:changed` - обновление информации, связанной с оплатой
 
 - `card:select` - выбор карточки с товаром
 - `item:check` - проверка, связанная с добавлением/удалением товара из корзины

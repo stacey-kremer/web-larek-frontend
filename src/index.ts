@@ -147,6 +147,9 @@ events.on('basket:open', openBasketModal);
 // Открытие формы заказа
 const openOrder = () => {
 	appState.clearOrder();
+
+	deliveryInf.resetPaymentButtons();
+
 	const deliveryContent = deliveryInf.render({
 		payment: '',
 		address: '',
@@ -160,6 +163,8 @@ const openOrder = () => {
 };
 
 events.on('order:open', openOrder);
+
+
 
 // Изменение полей формы доставки
 events.on(/^order\..*:change/, handleOrderChange);
@@ -179,7 +184,15 @@ events.on('deliveryForm:changed', (data: Partial<IDeliveryForm>) => {
 	deliveryInf.errors = Object.values({ payment, address })
 		.filter((i) => !!i)
 		.join('; ');
-	``;
+});
+
+events.on('payment:changed', (data: { method: 'cash' | 'card' }) => {
+    const method = data.method;
+	// Обновляем модель
+    appState.setDeliveryField('payment', method);
+
+    // А здесь обновляем состояние кнопок
+    deliveryInf.updatePaymentButtonState(method);
 });
 
 //Переход к заполнению контактных данных

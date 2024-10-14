@@ -30,13 +30,6 @@ export class AppState extends Model<IAppState> {
 		phone: '',
 	};
 
-	getCart() {
-		return {
-			items: this.basket,
-			total: this.getTotalSum(),
-		};
-	}
-
 	prepareOrderData(): IOrder & { items: string[]; total: number } {
 		const orderData = {
 			...this.order,
@@ -86,7 +79,6 @@ export class AppState extends Model<IAppState> {
 
 	setDeliveryField(field: keyof IDeliveryForm, value: string) {
 		this.order[field] = value;
-		this.updateDeliveryInfo();
 		this.validateDeliveryForm();
 	}
 
@@ -141,28 +133,14 @@ export class AppState extends Model<IAppState> {
 		return this.catalog;
 	}
 
-	updateDeliveryInfo() {
-		const isValid = this.validateDeliveryForm();
-		this.events.emit('deliveryForm:changed', {
-			valid: isValid,
-			errors: this.formatErrors(this.formErrors),
-		});
-	}
-
-	handleDeliveryFormSubmit() {
-		if (this.validateDeliveryForm()) {
-			this.events.emit('order:submit', this.prepareOrderData());
-		}
-	}
-
 	formatErrors(errors: Partial<IDeliveryForm>): string {
 		return Object.values(errors).filter(Boolean).join('; ');
 	}
 
 	clearOrder() {
 		Object.assign(this.order, {
-			address: '',
 			payment: '',
+			address: '',
 			email: '',
 			phone: '',
 		});
